@@ -1,0 +1,9 @@
+# Things Git must never upload.
+# node_modules is huge and can be installed again any time.
+node_modules/
+# serviceAccountKey.json is a private Firebase key. Never push it.
+serviceAccountKey.json
+# Local settings and logs.
+.env
+.DS_Store
+*.log

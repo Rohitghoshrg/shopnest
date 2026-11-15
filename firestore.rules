@@ -1,0 +1,50 @@
+// firestore.rules — safety rules for the online database.
+// Parts in this file:
+//   1) Products — anyone can read, only admin can change
+//   2) Orders — a customer can create only their own order;
+//      the admin or the owner can read it; only admin can
+//      change the status; nobody can delete an order
+//   3) Profiles — you can read/change/delete your OWN profile;
+//      the admin can read any profile
+// Paste this whole file into Firebase Console > Firestore
+// Database > Rules, then press Publish.
+// The admin is the owner email: mohendhroghoshrohit@gmail.com.
+// To change the owner, change the email below AND in
+// js/firebase.js (ADMIN_EMAIL).
+
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    function isAdmin() {
+      return request.auth != null
+        && request.auth.token.email == "mohendhroghoshrohit@gmail.com";
+    }
+    function isSignedIn() {
+      return request.auth != null;
+    }
+    function isOwner() {
+      return isSignedIn() && request.auth.uid == resource.data.userId;
+    }
+
+    match /products/{productId} {
+      allow read: if true;
+      allow create, update, delete: if isAdmin();
+    }
+
+    match /orders/{orderId} {
+      allow create: if isSignedIn()
+        && request.resource.data.userId == request.auth.uid
+        && request.resource.data.customerEmail == request.auth.token.email;
+      allow read: if isAdmin() || isOwner();
+      allow update: if isAdmin();
+      allow delete: if false;
+    }
+
+    match /users/{userId} {
+      allow read: if isAdmin() || (isSignedIn() && request.auth.uid == userId);
+      allow create, update: if isSignedIn() && request.auth.uid == userId;
+      allow delete: if isSignedIn() && request.auth.uid == userId;
+    }
+  }
+}

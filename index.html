@@ -1,0 +1,166 @@
+<!-- index.html — the one page of the shop.
+  Parts in this file:
+    1) Header (logo, search, menu)
+    2) Main area (empty — JavaScript draws each page here)
+    3) Login box, product popup, cart panel, checkout box
+    4) Footer (logo + shop lines)
+  How to run it: open this folder in VS Code, right-click
+  this file and choose "Open with Live Server". Do not
+  double-click the file. -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>ShopNest — Best online shop</title>
+<link rel="icon" href="favicon.png" />
+<link rel="preconnect" href="https://images.unsplash.com" />
+<link rel="preconnect" href="https://www.gstatic.com" crossorigin />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+<!-- The top of every page: announcement strip, logo, search, menu. -->
+<!-- ----- HEADER PART ----- -->
+<header class="topbar">
+  <div class="announce">Cash on delivery across Bangladesh &nbsp;•&nbsp; Delivery 80৳ inside Dhaka, 120৳ outside</div>
+  <div class="header">
+    <!-- Hamburger: opens the dark navy slide-in sidebar. -->
+    <button id="menuBtn" class="menu-btn" aria-label="Open menu">☰</button>
+    <!-- The header logo: the cart+house mark on a light graphic
+         tile (the full wide logo would look squashed here),
+         next to the ShopNest wordmark with a swoosh underline. -->
+    <a class="logo" href="#/"><span class="logo-tile"><img class="logo-mark-img" src="logo-mark.png" alt="" width="68" height="44" /><svg class="logo-sparkle" width="14" height="14" viewBox="0 0 24 24" fill="#f97316" aria-hidden="true"><path d="M12 0l2.4 9.6L24 12l-9.6 2.4L12 24l-2.4-9.6L0 12l9.6-2.4z"/></svg></span><span class="logo-text"><span class="logo-word">ShopNest</span><svg class="logo-swoosh" width="96" height="8" viewBox="0 0 96 8" aria-hidden="true"><path d="M2 6 Q 48 -2 94 5" fill="none" stroke="url(#swooshGrad)" stroke-width="3" stroke-linecap="round"/><defs><linearGradient id="swooshGrad" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#f97316"/><stop offset="1" stop-color="#ec4899"/></linearGradient></defs></svg><span class="logo-tag">Shop Smart. Live Better.</span></span></a>
+    <div class="search">
+      <input id="searchInput" type="search" name="search" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="Search products, brands..." />
+      <button id="searchBtn">Search</button>
+    </div>
+    <nav class="nav">
+      <a href="#/" id="navHome" class="nav-link">🏠 Home</a>
+      <a href="#/all" id="navAll" class="nav-link">🛍️ All Products</a>
+      <a href="#/orders" id="myOrdersLink" class="nav-link">📦 My Orders</a>
+      <a href="#/profile" id="profileBtn" class="nav-link" style="display:none">👤 Profile</a>
+      <a href="#/admin" id="adminLink" class="nav-link" style="display:none">🛡️ Admin</a>
+      <button id="darkToggle" class="secondary">🌙 Dark Mode</button>
+      <button id="cartBtn">🛒 Cart (<span id="cartCount">0</span>)</button>
+      <span id="userLabel"></span>
+      <button id="loginBtn">🔑 Login / Sign Up</button>
+      <button id="logoutBtn" style="display:none">🚪 Logout</button>
+    </nav>
+  </div>
+  <div id="configBanner" class="banner" style="display:none">
+    Firebase is not configured yet — paste your config into <b>js/firebase.js</b> (see README.md). Products below are shown from the local list; login / orders need Firebase.
+  </div>
+</header>
+
+<!-- The dark navy slide-in sidebar (drawer). Its content is
+     drawn by js/shop.js (renderDrawer), because it shows the
+     logged-in user's photo and name. -->
+<!-- ----- SIDEBAR PART ----- -->
+<div id="drawerOverlay" class="drawer-overlay" style="display:none"></div>
+<aside id="sideDrawer" class="side-drawer" aria-label="Menu"></aside>
+
+<!-- The main area. JavaScript draws the home page, category pages,
+     product pages, profile and admin here. It starts empty. -->
+<main id="app"></main>
+
+<!-- The login / sign up pop-up box. Hidden until opened.
+     The full ShopNest logo sits at the top, over a banner photo. -->
+<!-- ----- LOGIN BOX PART ----- -->
+<div id="authModal" class="modal" style="display:none">
+  <div class="modal-box auth-box">
+    <div class="auth-top">
+      <img class="auth-logo" src="logo.png" alt="ShopNest — Shop Smart. Live Better." width="240" height="120" />
+      <img class="auth-banner" src="https://images.unsplash.com/photo-1483985988355-763728e1935b?w=800&q=80&auto=format&fit=crop" alt="Shopping" width="800" height="300" loading="lazy" decoding="async" onerror="this.style.display='none'" />
+    </div>
+    <h2 id="authTitle">Login</h2>
+    <p id="authMsg">Please login to buy — kinte hole login koro</p>
+    <input id="authEmail" type="email" name="email" autocomplete="username" placeholder="Email" />
+    <input id="authPassword" type="password" name="password" autocomplete="current-password" placeholder="Password (min 6 characters)" />
+    <input id="authName" type="text" name="name" autocomplete="name" placeholder="Your name (sign up only)" style="display:none" />
+    <button id="authSubmit">Login</button>
+    <button id="authToggle">No account? Sign up</button>
+    <button id="authClose">Close</button>
+    <p id="authError" class="error"></p>
+  </div>
+</div>
+
+<!-- The pop-up that shows one product in detail. -->
+<!-- ----- PRODUCT POPUP PART ----- -->
+<div id="productModal" class="modal" style="display:none">
+  <div class="modal-box wide" id="productModalBox"></div>
+</div>
+
+<!-- The cart panel that slides in from the right. -->
+<!-- ----- CART PART ----- -->
+<div id="cartDrawer" class="drawer" style="display:none">
+  <div class="drawer-box">
+    <h2>Your Cart</h2>
+    <div id="cartItems"></div>
+    <p id="cartTotal"></p>
+    <input id="couponInput" placeholder="Coupon code (try BLACK20)" />
+    <button id="applyCouponBtn">Apply Coupon</button>
+    <p id="couponMsg"></p>
+    <button id="checkoutBtn">Checkout</button>
+    <button id="closeCartBtn">Close</button>
+  </div>
+</div>
+
+<!-- The checkout pop-up: name, phone, address, payment. -->
+<!-- ----- CHECKOUT PART ----- -->
+<div id="checkoutModal" class="modal" style="display:none">
+  <div class="modal-box wide">
+    <h2>Checkout</h2>
+    <form id="checkoutForm">
+      <input name="name" required placeholder="Full name" />
+      <input name="phone" required placeholder="Phone (e.g. 01XXXXXXXXX)" />
+      <input name="address" required placeholder="Full address (house, road, area)" />
+      <input name="district" required placeholder="District (e.g. Dhaka)" />
+      <label>Delivery zone
+        <select name="zone">
+          <option value="dhaka">Inside Dhaka — 80৳</option>
+          <option value="outside">Outside Dhaka — 120৳</option>
+        </select>
+      </label>
+      <label>Payment method
+        <select name="payment">
+          <option value="COD">Cash on Delivery</option>
+          <option value="bKash">bKash</option>
+          <option value="Nagad">Nagad</option>
+          <option value="Bank Transfer">Bank Transfer</option>
+        </select>
+      </label>
+      <div id="checkoutSummary"></div>
+      <button type="submit">Place Order</button>
+      <button type="button" id="checkoutClose">Cancel</button>
+    </form>
+    <p id="checkoutMsg"></p>
+  </div>
+</div>
+
+<!-- The bottom of every page: the full logo in a white card. -->
+<!-- ----- FOOTER PART ----- -->
+<footer>
+  <img class="footer-logo" src="logo.png" alt="ShopNest — Shop Smart. Live Better." width="200" height="100" loading="lazy" decoding="async" />
+  <p>ShopNest — Best online shop • Cash on delivery across Bangladesh • Delivery 80৳ inside Dhaka, 120৳ outside</p>
+  <p>© 2026 ShopNest</p>
+</footer>
+
+<!-- Start the shop. js/main.js is the starting point. -->
+<script type="module" src="js/main.js"></script>
+<script>
+// plain script, not a module: it still runs when ES modules are blocked
+// (e.g. the file was double-clicked instead of served over http).
+setTimeout(function () {
+  if (window.__shopnestBooted) return;
+  var app = document.getElementById("app");
+  if (!app || app.innerHTML.trim()) return;
+  app.innerHTML = "<h2>ShopNest did not load</h2>" +
+    "<p>Do not double-click index.html to open it. Open this folder in VS Code, right-click index.html and choose <b>Open with Live Server</b>.</p>" +
+    "<p>Or run this in a terminal inside the folder, then open http://localhost:8000 :</p>" +
+    "<p><code>python -m http.server 8000</code></p>" +
+    "<p>The shop also needs internet to reach Firebase (gstatic.com) for login and orders. Products load from the local files once the page is served.</p>";
+}, 2500);
+</script>
+</body>
+</html>
